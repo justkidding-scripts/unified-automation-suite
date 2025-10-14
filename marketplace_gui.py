@@ -20,15 +20,26 @@ from typing import List, Dict, Optional
 from sms_providers import provider_manager, PhoneNumber, ProviderStatus
 from crypto_payments import payment_processor, CryptoType, PaymentStatus
 
-# Professional dark theme (matching TGram.Pro)
-BG_COLOR = "#2c3e50"  # Dark blue-gray background
-FG_COLOR = "#ecf0f1"  # Light text
-FRAME_COLOR = "#34495e"  # Darker blue-gray frames
-BUTTON_COLOR = "#3498db"  # Professional blue buttons
-BUTTON_HOVER = "#2980b9"  # Darker blue on hover
-ACCENT_COLOR = "#e74c3c"  # Red accent for important items
-SUCCESS_COLOR = "#27ae60"  # Green for success
-WARNING_COLOR = "#f39c12"  # Orange for warnings
+# Import enhanced systems
+try:
+    from premium_features import get_premium_features, SubscriptionTier
+    from performance_manager import get_performance_manager
+    from multi_market_providers import get_multi_market_manager
+    from revenue_optimizer import get_revenue_optimizer
+    ENHANCED_FEATURES_AVAILABLE = True
+except ImportError as e:
+    print(f"Enhanced features not available: {e}")
+    ENHANCED_FEATURES_AVAILABLE = False
+
+# Sophisticated 5-shade gray theme
+BG_COLOR = "#606060"      # Medium gray background (shade 3)
+FG_COLOR = "#E0E0E0"      # Very light gray text
+FRAME_COLOR = "#505050"   # Dark gray frames (shade 2)
+BUTTON_COLOR = "#808080"  # Light gray buttons (shade 4) 
+BUTTON_HOVER = "#909090"  # Lighter gray on hover
+ACCENT_COLOR = "#707070"  # Dark gray accent
+SUCCESS_COLOR = "#808080" # Light gray for success
+WARNING_COLOR = "#A0A0A0" # Medium-light gray for warnings
 
 class SMSMarketplaceGUI:
     def __init__(self, root=None):
@@ -55,14 +66,32 @@ class SMSMarketplaceGUI:
         self.bulk_quantity = tk.IntVar(value=1)
         self.bulk_progress = tk.DoubleVar(value=0.0)
         
+        # Enhanced features
+        self.enhanced_features = None
+        self.performance_manager = None
+        self.multi_market_manager = None
+        self.revenue_optimizer = None
+        
         self.setup_gui()
+        
+        # Initialize enhanced features if available (after GUI setup)
+        if ENHANCED_FEATURES_AVAILABLE:
+            try:
+                self.enhanced_features = get_premium_features()
+                self.performance_manager = get_performance_manager()
+                self.multi_market_manager = get_multi_market_manager()
+                self.revenue_optimizer = get_revenue_optimizer()
+                self.log_message("💎 Enhanced features initialized successfully")
+            except Exception as e:
+                self.log_message(f"⚠️ Enhanced features initialization failed: {e}")
+        
         self.start_auto_refresh()
         
     def setup_gui(self):
         """Setup the marketplace GUI"""
         if self.standalone:
             self.root.title("SMS Number Marketplace")
-            self.root.geometry("900x700")  # Larger for phone number display
+            self.root.geometry("1400x600")  # Wider but less tall
             self.root.configure(bg=BG_COLOR)
             
         # Configure professional dark theme
