@@ -106,34 +106,42 @@ class EnhancedTelegramGUI:
             pass
         
     def setup_styles(self):
-        """Setup modern dark theme styles"""
+        """Setup clean gray and white theme like Telegram"""
         style = ttk.Style()
         style.theme_use('clam')
         
-        # Configure colors for dark theme
-        style.configure('TLabel', background='#2b2b2b', foreground='#ffffff')
-        style.configure('TFrame', background='#2b2b2b')
-        style.configure('TButton', background='#404040', foreground='#ffffff', borderwidth=1)
-        style.map('TButton', background=[('active', '#505050'), ('pressed', '#606060')])
-        style.configure('TEntry', fieldbackground='#404040', foreground='#ffffff', insertcolor='#ffffff')
-        style.configure('TText', background='#404040', foreground='#ffffff', insertcolor='#ffffff')
-        style.configure('TNotebook', background='#2b2b2b', tabposition='n')
-        style.configure('TNotebook.Tab', background='#404040', foreground='#ffffff', padding=[10, 4])
-        style.map('TNotebook.Tab', background=[('selected', '#505050'), ('active', '#454545')])
-        style.configure('TLabelFrame', background='#2b2b2b', foreground='#ffffff')
-        style.configure('TLabelFrame.Label', background='#2b2b2b', foreground='#ffffff')
-        style.configure('TCheckbutton', background='#2b2b2b', foreground='#ffffff')
-        style.configure('TScale', background='#2b2b2b')
-        style.configure('TSpinbox', fieldbackground='#404040', foreground='#ffffff')
-        style.configure('Treeview', background='#404040', foreground='#ffffff', fieldbackground='#404040')
-        style.configure('Treeview.Heading', background='#505050', foreground='#ffffff')
-        style.configure('TProgressbar', background='#00ff00', troughcolor='#404040')
+        # Clean gray and white color scheme
+        BG_LIGHT = '#ffffff'      # White background
+        BG_MEDIUM = '#f5f5f5'     # Light gray
+        BG_DARK = '#e5e5e5'       # Medium gray
+        FG_DARK = '#000000'       # Black text
+        FG_MEDIUM = '#333333'     # Dark gray text
+        ACCENT = '#d0d0d0'        # Light accent
         
-        # Enable text selection in all Text and Entry widgets globally
-        self.root.option_add('*Text.selectBackground', '#0078d7')
-        self.root.option_add('*Text.selectForeground', '#ffffff')
-        self.root.option_add('*Entry.selectBackground', '#0078d7')
-        self.root.option_add('*Entry.selectForeground', '#ffffff')
+        # Configure clean styling
+        style.configure('TLabel', background=BG_LIGHT, foreground=FG_DARK)
+        style.configure('TFrame', background=BG_LIGHT)
+        style.configure('TButton', background=BG_MEDIUM, foreground=FG_DARK, borderwidth=1)
+        style.map('TButton', background=[('active', BG_DARK), ('pressed', ACCENT)])
+        style.configure('TEntry', fieldbackground='#ffffff', foreground=FG_DARK, insertcolor=FG_DARK, borderwidth=1)
+        style.configure('TText', background='#ffffff', foreground=FG_DARK, insertcolor=FG_DARK)
+        style.configure('TNotebook', background=BG_LIGHT, tabposition='n')
+        style.configure('TNotebook.Tab', background=BG_MEDIUM, foreground=FG_DARK, padding=[10, 4])
+        style.map('TNotebook.Tab', background=[('selected', '#ffffff'), ('active', BG_DARK)])
+        style.configure('TLabelFrame', background=BG_LIGHT, foreground=FG_DARK, borderwidth=1)
+        style.configure('TLabelFrame.Label', background=BG_LIGHT, foreground=FG_DARK)
+        style.configure('TCheckbutton', background=BG_LIGHT, foreground=FG_DARK)
+        style.configure('TScale', background=BG_LIGHT, troughcolor=BG_MEDIUM)
+        style.configure('TSpinbox', fieldbackground='#ffffff', foreground=FG_DARK)
+        style.configure('Treeview', background='#ffffff', foreground=FG_DARK, fieldbackground='#ffffff')
+        style.configure('Treeview.Heading', background=BG_MEDIUM, foreground=FG_DARK, borderwidth=1)
+        style.configure('TProgressbar', background='#d0d0d0', troughcolor=BG_MEDIUM)
+        
+        # Clean text selection colors
+        self.root.option_add('*Text.selectBackground', '#d0d0d0')
+        self.root.option_add('*Text.selectForeground', '#000000')
+        self.root.option_add('*Entry.selectBackground', '#d0d0d0')
+        self.root.option_add('*Entry.selectForeground', '#000000')
         
     def create_widgets(self):
         """Create the main GUI layout"""
