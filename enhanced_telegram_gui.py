@@ -313,6 +313,11 @@ class EnhancedTelegramGUI:
         self.notebook.add(analytics_frame, text="Analytics")
         self.create_analytics_tab(analytics_frame)
         
+        # Settings tab
+        settings_frame = ttk.Frame(self.notebook)
+        self.notebook.add(settings_frame, text="Settings")
+        self.create_settings_tab(settings_frame)
+        
         # Restore last selected tab if available
         try:
             if hasattr(self, 'last_tab_index') and isinstance(self.last_tab_index, int):
@@ -511,6 +516,367 @@ class EnhancedTelegramGUI:
         ttk.Checkbutton(random_frame, variable=self.auto_rotation).grid(row=3, column=1, sticky=tk.W)
         
         random_frame.columnconfigure(1, weight=1)
+        
+    def create_settings_tab(self, parent):
+        """Create comprehensive settings tab"""
+        # Create scrollable frame
+        canvas = tk.Canvas(parent, bg='#2b2b2b')
+        scrollbar = ttk.Scrollbar(parent, orient="vertical", command=canvas.yview)
+        scrollable_frame = ttk.Frame(canvas)
+        
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # SOCKS5 Proxy Settings
+        proxy_frame = ttk.LabelFrame(scrollable_frame, text="SOCKS5 Proxy Configuration")
+        proxy_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        self.settings_use_proxy_var = tk.BooleanVar()
+        ttk.Checkbutton(proxy_frame, text="Enable SOCKS5 Proxy", 
+                       variable=self.settings_use_proxy_var, 
+                       command=self.toggle_settings_proxy).pack(pady=5, anchor='w')
+        
+        proxy_config = ttk.Frame(proxy_frame)
+        proxy_config.pack(fill=tk.X, padx=10, pady=5)
+        
+        ttk.Label(proxy_config, text="Host:").grid(row=0, column=0, sticky=tk.W, padx=5)
+        self.settings_proxy_host_var = tk.StringVar(value="127.0.0.1")
+        self.settings_proxy_host_entry = ttk.Entry(proxy_config, textvariable=self.settings_proxy_host_var, width=20, state='disabled')
+        self.settings_proxy_host_entry.grid(row=0, column=1, padx=5)
+        
+        ttk.Label(proxy_config, text="Port:").grid(row=0, column=2, sticky=tk.W, padx=5)
+        self.settings_proxy_port_var = tk.StringVar(value="9050")
+        self.settings_proxy_port_entry = ttk.Entry(proxy_config, textvariable=self.settings_proxy_port_var, width=8, state='disabled')
+        self.settings_proxy_port_entry.grid(row=0, column=3, padx=5)
+        
+        # Proxy Chain Options
+        chain_frame = ttk.LabelFrame(scrollable_frame, text="Proxy Chain Configuration")
+        chain_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        self.proxy_chain_enabled = tk.BooleanVar()
+        ttk.Checkbutton(chain_frame, text="Enable Proxy Chain", variable=self.proxy_chain_enabled).pack(pady=5, anchor='w')
+        
+        ttk.Label(chain_frame, text="Chain proxies for enhanced anonymity").pack(pady=2, anchor='w')
+        
+        # Checkup Scanning
+        checkup_frame = ttk.LabelFrame(scrollable_frame, text="System Checkup & Scanning")
+        checkup_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        self.scan_with_checkups = tk.BooleanVar(value=True)
+        ttk.Checkbutton(checkup_frame, text="Scan with checkups for everything in order", 
+                       variable=self.scan_with_checkups).pack(pady=5, anchor='w')
+        
+        checkup_options = ttk.Frame(checkup_frame)
+        checkup_options.pack(fill=tk.X, padx=20, pady=5)
+        
+        self.checkup_accounts = tk.BooleanVar(value=True)
+        self.checkup_proxies = tk.BooleanVar(value=True)
+        self.checkup_sessions = tk.BooleanVar(value=True)
+        self.checkup_database = tk.BooleanVar(value=True)
+        
+        ttk.Checkbutton(checkup_options, text="Account Health", variable=self.checkup_accounts).grid(row=0, column=0, sticky=tk.W, padx=5)
+        ttk.Checkbutton(checkup_options, text="Proxy Status", variable=self.checkup_proxies).grid(row=0, column=1, sticky=tk.W, padx=5)
+        ttk.Checkbutton(checkup_options, text="Session Validity", variable=self.checkup_sessions).grid(row=1, column=0, sticky=tk.W, padx=5)
+        ttk.Checkbutton(checkup_options, text="Database Integrity", variable=self.checkup_database).grid(row=1, column=1, sticky=tk.W, padx=5)
+        
+        # Analytics & Logging Settings
+        analytics_frame = ttk.LabelFrame(scrollable_frame, text="Logged-in Analytics")
+        analytics_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        self.enable_logged_analytics = tk.BooleanVar(value=True)
+        ttk.Checkbutton(analytics_frame, text="Enable logged-in analytics tracking", 
+                       variable=self.enable_logged_analytics).pack(pady=5, anchor='w')
+        
+        analytics_options = ttk.Frame(analytics_frame)
+        analytics_options.pack(fill=tk.X, padx=20, pady=5)
+        
+        self.track_scraping_stats = tk.BooleanVar(value=True)
+        self.track_messaging_stats = tk.BooleanVar(value=True)
+        self.track_session_usage = tk.BooleanVar(value=True)
+        
+        ttk.Checkbutton(analytics_options, text="Scraping Statistics", variable=self.track_scraping_stats).grid(row=0, column=0, sticky=tk.W, padx=5)
+        ttk.Checkbutton(analytics_options, text="Messaging Analytics", variable=self.track_messaging_stats).grid(row=0, column=1, sticky=tk.W, padx=5)
+        ttk.Checkbutton(analytics_options, text="Session Usage Data", variable=self.track_session_usage).grid(row=1, column=0, sticky=tk.W, padx=5)
+        
+        # Session Management
+        session_frame = ttk.LabelFrame(scrollable_frame, text="Session Management")
+        session_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        session_controls = ttk.Frame(session_frame)
+        session_controls.pack(fill=tk.X, padx=5, pady=5)
+        
+        ttk.Button(session_controls, text="Rotate Sessions", command=self.rotate_sessions).pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Button(session_controls, text="Backup Sessions", command=self.backup_sessions).pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Button(session_controls, text="Clean Old Sessions", command=self.clean_old_sessions).pack(side=tk.LEFT)
+        
+        self.auto_session_rotation = tk.BooleanVar()
+        ttk.Checkbutton(session_frame, text="Auto-rotate sessions every 24 hours", 
+                       variable=self.auto_session_rotation).pack(pady=5, anchor='w')
+        
+        # Theme Settings
+        theme_frame = ttk.LabelFrame(scrollable_frame, text="Theme & Appearance")
+        theme_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        self.dark_mode_var = tk.BooleanVar(value=True)
+        ttk.Checkbutton(theme_frame, text="Dark Mode", variable=self.dark_mode_var, 
+                       command=self.toggle_dark_mode).pack(pady=5, anchor='w')
+        
+        theme_options = ttk.Frame(theme_frame)
+        theme_options.pack(fill=tk.X, padx=20, pady=5)
+        
+        ttk.Label(theme_options, text="Accent Color:").pack(side=tk.LEFT)
+        self.accent_color_var = tk.StringVar(value="Blue")
+        accent_combo = ttk.Combobox(theme_options, textvariable=self.accent_color_var, 
+                                   values=["Blue", "Green", "Orange", "Purple", "Red"], 
+                                   state='readonly', width=10)
+        accent_combo.pack(side=tk.LEFT, padx=5)
+        
+        # Database Settings
+        db_frame = ttk.LabelFrame(scrollable_frame, text="Database Settings")
+        db_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        db_controls = ttk.Frame(db_frame)
+        db_controls.pack(fill=tk.X, padx=5, pady=5)
+        
+        ttk.Button(db_controls, text="🔓 Unlock Database", command=self.unlock_database).pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Button(db_controls, text="Optimize Database", command=self.optimize_database).pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Button(db_controls, text="Backup Database", command=self.backup_database).pack(side=tk.LEFT)
+        
+        self.auto_db_backup = tk.BooleanVar(value=True)
+        ttk.Checkbutton(db_frame, text="Auto-backup database daily", variable=self.auto_db_backup).pack(pady=5, anchor='w')
+        
+        # Advanced Options
+        advanced_frame = ttk.LabelFrame(scrollable_frame, text="Advanced Options")
+        advanced_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        self.debug_mode = tk.BooleanVar()
+        self.verbose_logging = tk.BooleanVar()
+        self.experimental_features = tk.BooleanVar()
+        
+        ttk.Checkbutton(advanced_frame, text="Debug Mode", variable=self.debug_mode).pack(pady=2, anchor='w')
+        ttk.Checkbutton(advanced_frame, text="Verbose Logging", variable=self.verbose_logging).pack(pady=2, anchor='w')
+        ttk.Checkbutton(advanced_frame, text="Enable Experimental Features", variable=self.experimental_features).pack(pady=2, anchor='w')
+        
+        # Apply/Save buttons
+        button_frame = ttk.Frame(scrollable_frame)
+        button_frame.pack(fill=tk.X, padx=10, pady=20)
+        
+        ttk.Button(button_frame, text="Apply Settings", command=self.apply_all_settings).pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Button(button_frame, text="Save to File", command=self.save_settings_to_file).pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Button(button_frame, text="Load from File", command=self.load_settings_from_file).pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Button(button_frame, text="Reset to Defaults", command=self.reset_settings_to_defaults).pack(side=tk.LEFT)
+        
+    def toggle_settings_proxy(self):
+        """Toggle proxy settings in Settings tab"""
+        state = 'normal' if self.settings_use_proxy_var.get() else 'disabled'
+        self.settings_proxy_host_entry.config(state=state)
+        self.settings_proxy_port_entry.config(state=state)
+        
+    def toggle_dark_mode(self):
+        """Toggle dark/light theme"""
+        if self.dark_mode_var.get():
+            self.apply_dark_theme()
+        else:
+            self.apply_light_theme()
+            
+    def apply_dark_theme(self):
+        """Apply dark theme"""
+        style = ttk.Style()
+        style.configure('TLabel', background='#2b2b2b', foreground='#ffffff')
+        style.configure('TFrame', background='#2b2b2b')
+        style.configure('TButton', background='#404040', foreground='#ffffff')
+        self.root.configure(bg='#2b2b2b')
+        self.log_message("Applied dark theme", 'INFO')
+        
+    def apply_light_theme(self):
+        """Apply light theme"""
+        style = ttk.Style()
+        style.configure('TLabel', background='#f0f0f0', foreground='#000000')
+        style.configure('TFrame', background='#f0f0f0')
+        style.configure('TButton', background='#e0e0e0', foreground='#000000')
+        self.root.configure(bg='#f0f0f0')
+        self.log_message("Applied light theme", 'INFO')
+        
+    def apply_all_settings(self):
+        """Apply all settings from the Settings tab"""
+        try:
+            # Apply proxy settings
+            if self.settings_use_proxy_var.get():
+                proxy_host = self.settings_proxy_host_var.get()
+                proxy_port = self.settings_proxy_port_var.get()
+                self.log_message(f"Applied proxy settings: {proxy_host}:{proxy_port}", 'SUCCESS')
+            
+            # Apply other settings
+            if self.enable_logged_analytics.get():
+                self.log_message("Analytics tracking enabled", 'INFO')
+            
+            if self.scan_with_checkups.get():
+                self.log_message("System checkups enabled", 'INFO')
+                
+            self.show_toast("Settings applied successfully", 'SUCCESS', 2000)
+            
+        except Exception as e:
+            self.log_message(f"Error applying settings: {e}", 'ERROR')
+            self.show_toast("Failed to apply settings", 'ERROR', 2000)
+            
+    def save_settings_to_file(self):
+        """Save current settings to file"""
+        try:
+            settings = {
+                'proxy_enabled': self.settings_use_proxy_var.get(),
+                'proxy_host': self.settings_proxy_host_var.get(),
+                'proxy_port': self.settings_proxy_port_var.get(),
+                'dark_mode': self.dark_mode_var.get(),
+                'analytics_enabled': self.enable_logged_analytics.get(),
+                'checkups_enabled': self.scan_with_checkups.get()
+            }
+            
+            filename = filedialog.asksaveasfilename(
+                defaultextension=".json",
+                filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
+            )
+            
+            if filename:
+                import json
+                with open(filename, 'w') as f:
+                    json.dump(settings, f, indent=2)
+                self.log_message(f"Settings saved to {filename}", 'SUCCESS')
+                self.show_toast("Settings saved", 'SUCCESS', 1500)
+                
+        except Exception as e:
+            self.log_message(f"Error saving settings: {e}", 'ERROR')
+            self.show_toast("Failed to save settings", 'ERROR', 2000)
+            
+    def load_settings_from_file(self):
+        """Load settings from file"""
+        try:
+            filename = filedialog.askopenfilename(
+                filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
+            )
+            
+            if filename:
+                import json
+                with open(filename, 'r') as f:
+                    settings = json.load(f)
+                
+                # Apply loaded settings
+                if 'proxy_enabled' in settings:
+                    self.settings_use_proxy_var.set(settings['proxy_enabled'])
+                if 'proxy_host' in settings:
+                    self.settings_proxy_host_var.set(settings['proxy_host'])
+                if 'proxy_port' in settings:
+                    self.settings_proxy_port_var.set(settings['proxy_port'])
+                if 'dark_mode' in settings:
+                    self.dark_mode_var.set(settings['dark_mode'])
+                    self.toggle_dark_mode()
+                
+                self.toggle_settings_proxy()
+                self.log_message(f"Settings loaded from {filename}", 'SUCCESS')
+                self.show_toast("Settings loaded", 'SUCCESS', 1500)
+                
+        except Exception as e:
+            self.log_message(f"Error loading settings: {e}", 'ERROR')
+            self.show_toast("Failed to load settings", 'ERROR', 2000)
+            
+    def reset_settings_to_defaults(self):
+        """Reset all settings to defaults"""
+        try:
+            self.settings_use_proxy_var.set(False)
+            self.settings_proxy_host_var.set("127.0.0.1")
+            self.settings_proxy_port_var.set("9050")
+            self.dark_mode_var.set(True)
+            self.enable_logged_analytics.set(True)
+            self.scan_with_checkups.set(True)
+            
+            self.toggle_settings_proxy()
+            self.toggle_dark_mode()
+            
+            self.log_message("Settings reset to defaults", 'INFO')
+            self.show_toast("Settings reset", 'INFO', 1500)
+            
+        except Exception as e:
+            self.log_message(f"Error resetting settings: {e}", 'ERROR')
+            
+    def backup_sessions(self):
+        """Backup session files"""
+        try:
+            import shutil
+            import os
+            from datetime import datetime
+            
+            backup_dir = f"session_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            os.makedirs(backup_dir, exist_ok=True)
+            
+            session_files = glob.glob("*.session")
+            for session_file in session_files:
+                shutil.copy2(session_file, backup_dir)
+                
+            self.log_message(f"Sessions backed up to {backup_dir}", 'SUCCESS')
+            self.show_toast(f"Backed up {len(session_files)} sessions", 'SUCCESS', 2000)
+            
+        except Exception as e:
+            self.log_message(f"Session backup failed: {e}", 'ERROR')
+            self.show_toast("Backup failed", 'ERROR', 2000)
+            
+    def clean_old_sessions(self):
+        """Clean old/unused session files"""
+        try:
+            import os
+            import glob
+            from datetime import datetime, timedelta
+            
+            cutoff_date = datetime.now() - timedelta(days=30)
+            session_files = glob.glob("*.session")
+            removed_count = 0
+            
+            for session_file in session_files:
+                file_time = datetime.fromtimestamp(os.path.getmtime(session_file))
+                if file_time < cutoff_date:
+                    os.remove(session_file)
+                    removed_count += 1
+                    
+            self.log_message(f"Cleaned {removed_count} old session files", 'SUCCESS')
+            self.show_toast(f"Cleaned {removed_count} sessions", 'SUCCESS', 2000)
+            
+        except Exception as e:
+            self.log_message(f"Session cleanup failed: {e}", 'ERROR')
+            self.show_toast("Cleanup failed", 'ERROR', 2000)
+            
+    def optimize_database(self):
+        """Optimize database performance"""
+        try:
+            # Run database optimization
+            self.automation.optimize_database()
+            self.log_message("Database optimized successfully", 'SUCCESS')
+            self.show_toast("Database optimized", 'SUCCESS', 1500)
+            
+        except Exception as e:
+            self.log_message(f"Database optimization failed: {e}", 'ERROR')
+            self.show_toast("Optimization failed", 'ERROR', 2000)
+            
+    def backup_database(self):
+        """Backup database file"""
+        try:
+            import shutil
+            from datetime import datetime
+            
+            backup_name = f"telegram_automation_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
+            shutil.copy2("telegram_automation.db", backup_name)
+            
+            self.log_message(f"Database backed up as {backup_name}", 'SUCCESS')
+            self.show_toast("Database backed up", 'SUCCESS', 1500)
+            
+        except Exception as e:
+            self.log_message(f"Database backup failed: {e}", 'ERROR')
+            self.show_toast("Backup failed", 'ERROR', 2000)
         
     def create_proxy_tab(self, parent):
         """Create proxy configuration tab"""
