@@ -1,0 +1,145 @@
+# Unified Automation Suite - Git Ignore
+# ====================================
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Configuration & Secrets
+config.ini
+*.key
+*.secret
+api_keys.json
+credentials.json
+
+# Telegram Sessions
+*.session
+*.session-journal
+sessions/
+session_*.session*
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+databases/
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Cache & temporary files
+.cache/
+temp/
+tmp/
+*.tmp
+*.temp
+
+# Exports & Downloads
+exports/
+downloads/
+scraped_data/
+*.csv
+*.json
+*.xlsx
+*.xls
+exported_*
+
+# Backup files
+backups/
+*.backup
+*.bak
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Proxy lists
+proxies.txt
+proxy_list.txt
+*.proxy
+
+# Screenshots & Images (except icons)
+screenshots/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+!icon.png
+!logo.png
+
+# Compiled files
+*.pyc
+*.pyo
+*.pyd
+
+# Testing
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+
+# Documentation builds
+docs/_build/
+site/
+
+# Integration specific
+unified_automation.db*
+integration_*.json
+test_results_*.json
+performance_*.log
+
+# SMS & Phone data
+sms_codes/
+phone_numbers/
+verification_codes.json
+
+# Local environment
+.local/
+local_settings.py
+development.ini
