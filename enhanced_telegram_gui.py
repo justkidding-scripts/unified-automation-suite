@@ -60,6 +60,9 @@ class EnhancedTelegramGUI:
         self.root.title("Enhanced Telegram Automation Suite v2.0")
         self.root.geometry("1200x800")
         self.root.configure(bg='#2b2b2b')
+        # Enable minimize button
+        self.root.resizable(True, True)
+        self.root.minsize(800, 600)
         
         # Style configuration
         self.setup_styles()
@@ -464,12 +467,10 @@ class EnhancedTelegramGUI:
         self.toast_stack_var = tk.BooleanVar(value=self.stack_toasts)
         
         ttk.Checkbutton(notify_frame, text="Enable toasts", variable=self.toasts_enabled_var, command=self.apply_notification_settings).grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
-        ttk.Checkbutton(notify_frame, text="Toast sound", variable=self.toast_sound_var, command=self.apply_notification_settings).grid(row=0, column=1, sticky=tk.W, padx=5, pady=5)
-        ttk.Checkbutton(notify_frame, text="Stack toasts", variable=self.toast_stack_var, command=self.apply_notification_settings).grid(row=0, column=2, sticky=tk.W, padx=5, pady=5)
         
-        # Anti-Detection Settings
+        # Anti-Detection Settings - Ensure visibility
         antidetect_frame = ttk.LabelFrame(parent, text="Anti-Detection Settings")
-        antidetect_frame.pack(fill=tk.X, padx=10, pady=10)
+        antidetect_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
         # Randomization settings
         random_frame = ttk.Frame(antidetect_frame)
