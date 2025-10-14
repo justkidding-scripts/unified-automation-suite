@@ -13,7 +13,7 @@ from tkinter import ttk
 import json
 import os
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 class UnifiedThemeManager:
     """Manages unified themes across all tools"""

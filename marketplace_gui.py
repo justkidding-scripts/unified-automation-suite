@@ -19,6 +19,8 @@ from typing import List, Dict, Optional
 # Import our new modules
 from sms_providers import provider_manager, PhoneNumber, ProviderStatus
 from crypto_payments import payment_processor, CryptoType, PaymentStatus
+# Unified styling
+from unified_automation_suite.unified_styling import UnifiedThemeManager, UnifiedStyleConfigurator
 
 # Import enhanced systems
 try:
@@ -94,99 +96,24 @@ class SMSMarketplaceGUI:
             self.root.geometry("1400x600")  # Wider but less tall
             self.root.configure(bg=BG_COLOR)
             
-        # Configure professional dark theme
-        style = ttk.Style()
+        # Apply unified professional theme
+        tm = UnifiedThemeManager()
+        sc = UnifiedStyleConfigurator(tm)
+        sc.configure_style(self.root, theme_name='dark_professional')
+        colors = tm.get_theme('dark_professional')['colors']
+        try:
+            self.root.configure(bg=colors['bg_primary'])
+        except Exception:
+            pass
         
-        # Configure dark theme styles
-        style.theme_use('clam')  # Use clam theme as base
-        
-        # Configure Frame styles (simplified to avoid layout conflicts)
-        style.configure('TFrame', background=BG_COLOR, borderwidth=0)
-        style.configure('TLabelFrame', 
-                       background=BG_COLOR, 
-                       foreground=FG_COLOR,
-                       borderwidth=2)
-        style.configure('TLabelFrame.Label', 
-                       background=BG_COLOR, 
-                       foreground=FG_COLOR,
-                       font=('Segoe UI', 10, 'bold'))
-        
-        # Configure Button styles
-        style.configure('TButton',
-                       background=BUTTON_COLOR,
-                       foreground='white',
-                       borderwidth=1,
-                       focuscolor='none',
-                       font=('Segoe UI', 9))
-        style.map('TButton',
-                 background=[('active', BUTTON_HOVER),
-                           ('pressed', BUTTON_HOVER)],
-                 foreground=[('active', 'white'),
-                           ('pressed', 'white')])
-        
-        # Configure Label styles
-        style.configure('TLabel',
-                       background=BG_COLOR,
-                       foreground=FG_COLOR,
-                       font=('Segoe UI', 9))
-        
-        # Configure Entry styles
-        style.configure('TEntry',
-                       fieldbackground=FRAME_COLOR,
-                       foreground=FG_COLOR,
-                       borderwidth=1,
-                       insertcolor=FG_COLOR)
-        
-        # Configure Combobox styles
-        style.configure('TCombobox',
-                       fieldbackground=FRAME_COLOR,
-                       background=FRAME_COLOR,
-                       foreground=FG_COLOR,
-                       arrowcolor=FG_COLOR,
-                       borderwidth=1)
-        style.map('TCombobox',
-                 fieldbackground=[('readonly', FRAME_COLOR)],
-                 selectbackground=[('readonly', BUTTON_COLOR)])
-        
-        # Configure Treeview styles
-        style.configure('Treeview',
-                       background=FRAME_COLOR,
-                       foreground=FG_COLOR,
-                       fieldbackground=FRAME_COLOR,
-                       borderwidth=1,
-                       font=('Consolas', 9))
-        style.configure('Treeview.Heading',
-                       background=BUTTON_COLOR,
-                       foreground='white',
-                       relief='flat',
-                       font=('Segoe UI', 9, 'bold'))
-        style.map('Treeview',
-                 background=[('selected', BUTTON_COLOR)],
-                 foreground=[('selected', 'white')])
-        
-        # Configure Notebook styles
-        style.configure('TNotebook',
-                       background=BG_COLOR,
-                       borderwidth=0,
-                       tabmargins=[2, 5, 2, 0])
-        style.configure('TNotebook.Tab',
-                       background=FRAME_COLOR,
-                       foreground=FG_COLOR,
-                       padding=[20, 8],
-                       font=('Segoe UI', 9, 'bold'))
-        style.map('TNotebook.Tab',
-                 background=[('selected', BUTTON_COLOR),
-                           ('active', BUTTON_HOVER)],
-                 foreground=[('selected', 'white'),
-                           ('active', 'white')])
-        
-        # Configure Progressbar styles
+        # Additional marketplace-specific tweaks
+        style = ttk.Style(self.root)
         style.configure('Horizontal.TProgressbar',
-                       background=SUCCESS_COLOR,
-                       troughcolor=FRAME_COLOR,
+                       background=colors['success'],
+                       troughcolor=colors['bg_tertiary'],
                        borderwidth=0,
-                       lightcolor=SUCCESS_COLOR,
-                       darkcolor=SUCCESS_COLOR)
+                       lightcolor=colors['success'],
+                       darkcolor=colors['success'])
         
         # Main frame with dark theme
         main_frame = ttk.Frame(self.root)

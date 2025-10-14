@@ -22,6 +22,9 @@ import subprocess
 import sys
 from typing import Dict, List, Optional, Any
 
+# Unified styling
+from unified_automation_suite.unified_styling import UnifiedThemeManager, UnifiedStyleConfigurator
+
 # Import the integration manager
 from unified_integration_manager import (
     integration_manager, ToolType, EventType, IntegrationEvent,
@@ -80,33 +83,29 @@ class UnifiedToolLauncher:
         self.logger = logging.getLogger(__name__)
     
     def setup_styles(self):
-        """Setup consistent dark theme styles"""
-        style = ttk.Style()
-        style.theme_use('clam')
+        """Apply unified professional theme across the suite"""
+        tm = UnifiedThemeManager()
+        sc = UnifiedStyleConfigurator(tm)
+        sc.configure_style(self.root, theme_name='dark_professional')
+        theme = tm.get_theme('dark_professional')
+        colors = theme['colors']
         
-        # Configure colors for unified dark theme
-        style.configure('TLabel', background='#1e1e1e', foreground='#ffffff')
-        style.configure('TFrame', background='#1e1e1e')
-        style.configure('TButton', background='#404040', foreground='#ffffff', borderwidth=1)
-        style.map('TButton', background=[('active', '#505050'), ('pressed', '#606060')])
-        style.configure('TEntry', fieldbackground='#404040', foreground='#ffffff', insertcolor='#ffffff')
-        style.configure('TNotebook', background='#1e1e1e', tabposition='n')
-        style.configure('TNotebook.Tab', background='#404040', foreground='#ffffff', padding=[15, 8])
-        style.map('TNotebook.Tab', background=[('selected', '#505050'), ('active', '#454545')])
-        style.configure('TLabelFrame', background='#1e1e1e', foreground='#ffffff')
-        style.configure('TLabelFrame.Label', background='#1e1e1e', foreground='#ffffff')
-        style.configure('Treeview', background='#404040', foreground='#ffffff', fieldbackground='#404040')
-        style.configure('Treeview.Heading', background='#505050', foreground='#ffffff')
+        # Root background to match theme
+        try:
+            self.root.configure(bg=colors['bg_primary'])
+        except Exception:
+            pass
         
-        # Custom styles
-        style.configure('Title.TLabel', font=('Consolas', 20, 'bold'), background='#1e1e1e', foreground='#00ff88')
-        style.configure('Subtitle.TLabel', font=('Consolas', 12), background='#1e1e1e', foreground='#cccccc')
-        style.configure('Status.TLabel', font=('Consolas', 10), background='#1e1e1e')
-        style.configure('Success.TLabel', foreground='#00ff88')
-        style.configure('Warning.TLabel', foreground='#ffaa00')
-        style.configure('Error.TLabel', foreground='#ff4444')
-        style.configure('Launch.TButton', font=('Consolas', 12, 'bold'), background='#00aa44')
-        style.configure('Stop.TButton', font=('Consolas', 12, 'bold'), background='#aa4400')
+        # Custom accents for this launcher
+        style = ttk.Style(self.root)
+        style.configure('Title.TLabel', font=('Consolas', 20, 'bold'), background=colors['bg_primary'], foreground=colors['accent_primary'])
+        style.configure('Subtitle.TLabel', font=('Consolas', 12), background=colors['bg_primary'], foreground=colors['fg_secondary'])
+        style.configure('Status.TLabel', font=('Consolas', 10), background=colors['bg_primary'], foreground=colors['fg_secondary'])
+        style.configure('Success.TLabel', foreground=colors['success'], background=colors['bg_primary'])
+        style.configure('Warning.TLabel', foreground=colors['warning'], background=colors['bg_primary'])
+        style.configure('Error.TLabel', foreground=colors['error'], background=colors['bg_primary'])
+        style.configure('Launch.TButton', font=('Consolas', 12, 'bold'))
+        style.configure('Stop.TButton', font=('Consolas', 12, 'bold'))
     
     def setup_integration_handlers(self):
         """Setup event handlers for cross-tool integration"""
