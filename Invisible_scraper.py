@@ -99,6 +99,11 @@ class PremiumAutoScraper:
             'detection_accuracy': 0.0,
             'avg_scrape_time': 0.0
         }
+        
+    def setup_database(self):
+        """Setup premium scraper database"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
 
         # Planned batches table
         cursor.execute("""

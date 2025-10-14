@@ -165,6 +165,18 @@ class EnhancedTelegramAutomation:
             'message': 0,
         }
         
+        # Enhanced scraping capabilities
+        self.invisible_scraping_enabled = True
+        self.phone_extraction_enabled = True
+        self.enhanced_data_collection = True
+        
+        # Enhanced member fields to collect
+        self.enhanced_member_fields = [
+            'user_id', 'username', 'first_name', 'last_name', 'phone',
+            'last_seen', 'profile_photo_id', 'is_verified', 'is_premium',
+            'bio', 'status', 'lang_code', 'is_scam', 'is_fake', 'is_bot'
+        ]
+        
     def setup_logging(self):
         """Setup comprehensive logging"""
         logging.basicConfig(
@@ -214,17 +226,42 @@ class EnhancedTelegramAutomation:
             )
         """)
         
-        # Scraped members storage
+        # Scraped members table (legacy compatibility)
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS scraped_members (
-                user_id INTEGER,
+                user_id INTEGER PRIMARY KEY,
+                username TEXT,
+                first_name TEXT,
+                last_name TEXT,
+                phone TEXT,
+                source_group TEXT,
+                scraped_at TEXT
+            )
+        """)
+        
+        # Enhanced scraped members table with advanced fields
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS scraped_members_enhanced (
+                user_id INTEGER PRIMARY KEY,
                 username TEXT,
                 first_name TEXT,
                 last_name TEXT,
                 phone TEXT,
                 source_group TEXT,
                 scraped_at TEXT,
-                PRIMARY KEY (user_id, source_group)
+                is_verified BOOLEAN DEFAULT FALSE,
+                is_premium BOOLEAN DEFAULT FALSE,
+                is_bot BOOLEAN DEFAULT FALSE,
+                is_scam BOOLEAN DEFAULT FALSE,
+                is_fake BOOLEAN DEFAULT FALSE,
+                lang_code TEXT,
+                profile_photo_id TEXT,
+                bio TEXT,
+                last_seen_status TEXT,
+                invisibility_score REAL DEFAULT 0.5,
+                is_invisible_member BOOLEAN DEFAULT FALSE,
+                phone_source TEXT,
+                detection_methods TEXT
             )
         """)
         
@@ -654,15 +691,11 @@ class EnhancedTelegramAutomation:
                         if user.id in seen_ids:
                             continue
                         seen_ids.add(user.id)
-                        member_data = {
-                            'id': user.id,
-                            'username': user.username,
-                            'first_name': getattr(user, 'first_name', None),
-                            'last_name': getattr(user, 'last_name', None),
-                            'phone': getattr(user, 'phone', None),
-                            'source_group': source_group,
-                            'scraped_at': datetime.now().isoformat()
-                        }
+                        member_data = await self.extract_enhanced_member_data(user, source_group)
+                        
+                        # Enhanced invisible detection - attempt to get more data
+                        if self.invisible_scraping_enabled:
+                            member_data = await self.enhance_member_with_invisible_data(client, user, member_data)
                         batch_members.append(member_data)
                     if batch_members:
                         await self.store_scraped_members(batch_members)
@@ -751,19 +784,139 @@ class EnhancedTelegramAutomation:
                 self._release_session(reserved_session)
             except Exception:
                 pass
+    async def extract_enhanced_member_data(self, user, source_group: str) -> Dict:
+        """Extract enhanced member data with all available fields"""
+        member_data = {
+            'id': user.id,
+            'username': getattr(user, 'username', None),
+            'first_name': getattr(user, 'first_name', None),
+            'last_name': getattr(user, 'last_name', None),
+            'phone': getattr(user, 'phone', None),
+            'source_group': source_group,
+            'scraped_at': datetime.now().isoformat(),
+            # Enhanced fields
+            'user_id_full': user.id,
+            'is_verified': getattr(user, 'verified', False),
+            'is_premium': getattr(user, 'premium', False),
+            'is_bot': getattr(user, 'bot', False),
+            'is_scam': getattr(user, 'scam', False),
+            'is_fake': getattr(user, 'fake', False),
+            'lang_code': getattr(user, 'lang_code', None),
+            'profile_photo_id': None,
+            'bio': None,
+            'last_seen_status': None,
+            'invisibility_score': 0.5  # Default visibility score
+        }
+        
+        # Extract profile photo info
+        if hasattr(user, 'photo') and user.photo:
+            member_data['profile_photo_id'] = getattr(user.photo, 'photo_id', 'has_photo')
+            
+        # Extract last seen status
+        if hasattr(user, 'status'):
+            status = user.status
+            if hasattr(status, '__class__'):
+                status_name = status.__class__.__name__
+                member_data['last_seen_status'] = status_name
+                
+                # Calculate invisibility score based on status
+                if status_name == 'UserStatusEmpty':
+                    member_data['invisibility_score'] = 0.1  # Very invisible
+                elif status_name == 'UserStatusLastMonth':
+                    member_data['invisibility_score'] = 0.3
+                elif status_name == 'UserStatusLastWeek':
+                    member_data['invisibility_score'] = 0.5
+                elif status_name == 'UserStatusRecently':
+                    member_data['invisibility_score'] = 0.7
+                elif status_name == 'UserStatusOnline':
+                    member_data['invisibility_score'] = 1.0  # Fully visible
+        
+        return member_data
+        
+    async def enhance_member_with_invisible_data(self, client, user, member_data: Dict) -> Dict:
+        """Enhance member data with invisible detection techniques"""
+        try:
+            # Attempt to get full user info (might reveal hidden data)
+            try:
+                full_user = await client.get_entity(user.id)
+                
+                # Extract additional fields that might be hidden
+                if hasattr(full_user, 'phone') and full_user.phone and not member_data.get('phone'):
+                    member_data['phone'] = full_user.phone
+                    member_data['phone_source'] = 'invisible_extraction'
+                    
+                # Check for bio/about
+                if hasattr(full_user, 'about'):
+                    member_data['bio'] = full_user.about
+                    
+            except Exception:
+                pass  # Failed to get enhanced data, continue with basic data
+                
+            # Invisible detection scoring
+            invisible_indicators = 0
+            total_indicators = 6
+            
+            # Check various invisibility indicators
+            if not member_data.get('username'):
+                invisible_indicators += 1
+            if not member_data.get('profile_photo_id'):
+                invisible_indicators += 1
+            if not member_data.get('first_name'):
+                invisible_indicators += 1
+            if not member_data.get('last_name'):
+                invisible_indicators += 1
+            if member_data.get('last_seen_status') in ['UserStatusEmpty', 'UserStatusLastMonth']:
+                invisible_indicators += 1
+            if not member_data.get('phone'):
+                invisible_indicators += 1
+                
+            # Update invisibility score
+            member_data['invisibility_score'] = 1.0 - (invisible_indicators / total_indicators)
+            
+            # Mark as potentially invisible if score is low
+            if member_data['invisibility_score'] < 0.3:
+                member_data['detection_methods'] = ['profile_analysis', 'metadata_extraction']
+                member_data['is_invisible_member'] = True
+            else:
+                member_data['is_invisible_member'] = False
+                
+        except Exception as e:
+            self.logger.debug(f"Invisible enhancement failed for user {user.id}: {e}")
+            
+        return member_data
+    
     async def store_scraped_members(self, members: List[Dict]):
-        """Store scraped members in database"""
+        """Store enhanced scraped members in database"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
         for member in members:
+            # Store in enhanced table
+            cursor.execute("""
+                INSERT OR REPLACE INTO scraped_members_enhanced 
+                (user_id, username, first_name, last_name, phone, source_group, scraped_at,
+                 is_verified, is_premium, is_bot, is_scam, is_fake, lang_code,
+                 profile_photo_id, bio, last_seen_status, invisibility_score, is_invisible_member)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                member['id'], member.get('username'), member.get('first_name'),
+                member.get('last_name'), member.get('phone'), member['source_group'],
+                member['scraped_at'], member.get('is_verified', False),
+                member.get('is_premium', False), member.get('is_bot', False),
+                member.get('is_scam', False), member.get('is_fake', False),
+                member.get('lang_code'), member.get('profile_photo_id'),
+                member.get('bio'), member.get('last_seen_status'),
+                member.get('invisibility_score', 0.5), member.get('is_invisible_member', False)
+            ))
+            
+            # Also store in legacy table for compatibility
             cursor.execute("""
                 INSERT OR REPLACE INTO scraped_members 
                 (user_id, username, first_name, last_name, phone, source_group, scraped_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             """, (
-                member['id'], member['username'], member['first_name'],
-                member['last_name'], member['phone'], member['source_group'],
+                member['id'], member.get('username'), member.get('first_name'),
+                member.get('last_name'), member.get('phone'), member['source_group'],
                 member['scraped_at']
             ))
             
