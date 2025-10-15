@@ -15,6 +15,7 @@ import csv
 import json
 from datetime import datetime
 from typing import List, Dict, Optional
+from pathlib import Path
 
 # Import our new modules
 from sms_providers import provider_manager, PhoneNumber, ProviderStatus
@@ -51,6 +52,11 @@ class SMSMarketplaceGUI:
         else:
             self.root = root
             self.standalone = False
+            
+        # UI preferences
+        self.prefs_path = Path(__file__).with_name('ui_prefs.json')
+        self.load_prefs()
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
             
         # Initialize state variables
         self.available_numbers = []
@@ -89,11 +95,54 @@ class SMSMarketplaceGUI:
         
         self.start_auto_refresh()
         
+    def on_closing(self):
+        """Persist UI preferences and close"""
+        try:
+            self.save_prefs()
+        except Exception:
+            pass
+        try:
+            if self.standalone:
+                self.root.destroy()
+        except Exception:
+            pass
+        
+    def load_prefs(self):
+        """Load UI preferences (geometry) if available"""
+        try:
+            if self.prefs_path.exists():
+                import json as _json
+                with open(self.prefs_path, 'r') as f:
+                    data = _json.load(f)
+                geom = data.get('window_geometry')
+                if geom:
+                    try:
+                        self.root.geometry(geom)
+                        self._geometry_loaded = True
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+        
+    def save_prefs(self):
+        """Save UI preferences (geometry)"""
+        try:
+            import json as _json
+            data = {
+                'window_geometry': self.root.winfo_geometry(),
+            }
+            with open(self.prefs_path, 'w') as f:
+                _json.dump(data, f, indent=2)
+        except Exception:
+            pass
+        
     def setup_gui(self):
         """Setup the marketplace GUI"""
         if self.standalone:
             self.root.title("SMS Number Marketplace")
-            self.root.geometry("1400x600")  # Wider but less tall
+            # Default geometry; may be overridden by loaded prefs
+            if not getattr(self, '_geometry_loaded', False):
+                self.root.geometry("1400x600")  # Wider but less tall
             self.root.configure(bg=BG_COLOR)
             
         # Apply unified professional theme

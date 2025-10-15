@@ -40,6 +40,10 @@ class UnifiedToolLauncher:
         self.root.geometry("1400x900")
         self.root.configure(bg='#1e1e1e')
         
+        # UI preferences
+        self.prefs_path = Path(__file__).with_name('ui_prefs.json')
+        self.load_prefs()
+        
         # Tool instances
         self.telegram_process = None
         self.sms_marketplace_process = None
@@ -83,11 +87,22 @@ class UnifiedToolLauncher:
         self.logger = logging.getLogger(__name__)
     
     def setup_styles(self):
-        """Apply unified professional theme across the suite"""
+        """Apply unified professional theme across the suite (respects persisted theme)"""
         tm = UnifiedThemeManager()
+        try:
+            # Load preferred theme if previously saved
+            if hasattr(self, 'prefs_path') and self.prefs_path.exists():
+                import json as _json
+                with open(self.prefs_path, 'r') as _pf:
+                    _data = _json.load(_pf)
+                sel = _data.get('selected_theme')
+                if sel:
+                    tm.set_theme(sel)
+        except Exception:
+            pass
         sc = UnifiedStyleConfigurator(tm)
-        sc.configure_style(self.root, theme_name='dark_professional')
-        theme = tm.get_theme('dark_professional')
+        sc.configure_style(self.root, theme_name=tm.current_theme)
+        theme = tm.get_theme(tm.current_theme)
         colors = theme['colors']
         
         # Root background to match theme
@@ -884,12 +899,47 @@ class UnifiedToolLauncher:
             # Cleanup integration manager
             integration_manager.cleanup()
             
+            # Persist UI prefs
+            try:
+                self.save_prefs()
+            except Exception:
+                pass
+            
             self.logger.info("Unified launcher shutting down")
             self.root.destroy()
             
         except Exception as e:
             self.logger.error(f"Error during shutdown: {e}")
             self.root.destroy()
+    
+    def load_prefs(self):
+        """Load UI preferences (geometry, theme) if available"""
+        try:
+            if self.prefs_path.exists():
+                with open(self.prefs_path, 'r') as f:
+                    data = json.load(f)
+                geom = data.get('window_geometry')
+                if geom:
+                    try:
+                        self.root.geometry(geom)
+                    except Exception:
+                        pass
+                self.selected_theme = data.get('selected_theme', None)
+        except Exception:
+            pass
+    
+    def save_prefs(self):
+        """Save UI preferences (geometry, theme)"""
+        try:
+            data = {
+                'window_geometry': self.root.winfo_geometry(),
+            }
+            if getattr(self, 'selected_theme', None):
+                data['selected_theme'] = self.selected_theme
+            with open(self.prefs_path, 'w') as f:
+                json.dump(data, f, indent=2)
+        except Exception:
+            pass
     
     def run(self):
         """Run the launcher"""
